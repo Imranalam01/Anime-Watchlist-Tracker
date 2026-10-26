@@ -1,4 +1,6 @@
-# AniTrack — Full-Stack Anime Watchlist Tracker
+=======
+# Anime-Watchlist-Tracker
+# 🌸 Anime Watchlist Tracker  A sleek, intuitive, and customizable application to track, rate, and manage your anime journey. Whether you are binge-watching the latest seasonal hits or catching up on classics, this tracker keeps your entire watchlist organized in one place.
 
 AniTrack is a responsive, modern dark-themed Anime Watchlist Tracker built with Python Flask, SQLite, vanilla JavaScript, HTML5, CSS3, and Chart.js.
 
