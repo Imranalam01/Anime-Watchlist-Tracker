@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AniTrack — Modern, responsive dark-themed Anime Watchlist Tracker with progress tracking, ratings, and analytics.">
+    <title>AniTrack — Anime Watchlist Tracker</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <!-- Main Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="dark-theme">
+    <!-- Background Glow Elements -->
+    <div class="bg-glow bg-glow-1" aria-hidden="true"></div>
+    <div class="bg-glow bg-glow-2" aria-hidden="true"></div>
+
+    <!-- Header / Navbar -->
+    <header class="app-header">
+        <div class="header-container">
+            <div class="brand">
+                <div class="brand-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                    </svg>
+                </div>
+                <div class="brand-text">
+                    <h1 class="brand-title">Ani<span class="gradient-text">Track</span></h1>
+                    <span class="brand-badge">Watchlist MVP</span>
+                </div>
+            </div>
+
+            <div class="header-status">
+                <span class="status-indicator-dot" id="system-status-dot"></span>
+                <span class="status-indicator-text" id="system-status-text">SQLite Active</span>
+            </div>
+
+            <div class="header-actions">
+                <button type="button" class="btn btn-primary" id="btn-open-add-modal" aria-label="Add new anime">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    <span>Add Anime</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <!-- Top Analytics Row -->
+        <section class="stats-overview" aria-label="Watchlist Summary Statistics">
+            <div class="stat-card" id="card-total-anime">
+                <div class="stat-icon-wrapper total-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">Total Anime</span>
+                    <h2 class="stat-value" id="stat-total-count">0</h2>
+                </div>
+            </div>
+
+            <div class="stat-card" id="card-watching">
+                <div class="stat-icon-wrapper watching-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polygon points="10 8 16 12 10 16 10 8"></polygon>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">Watching</span>
+                    <h2 class="stat-value" id="stat-watching-count">0</h2>
+                </div>
+            </div>
+
+            <div class="stat-card" id="card-completed">
+                <div class="stat-icon-wrapper completed-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">Completed</span>
+                    <h2 class="stat-value" id="stat-completed-count">0</h2>
+                </div>
+            </div>
+
+            <div class="stat-card" id="card-dropped">
+                <div class="stat-icon-wrapper dropped-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="15" y1="9" x2="9" y2="15"></line>
+                        <line x1="9" y1="9" x2="15" y2="15"></line>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">Dropped</span>
+                    <h2 class="stat-value" id="stat-dropped-count">0</h2>
+                </div>
+            </div>
+
+            <div class="stat-card" id="card-avg-rating">
+                <div class="stat-icon-wrapper rating-icon">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">Average Rating</span>
+                    <h2 class="stat-value" id="stat-avg-rating">0.0<span class="stat-sub">/10</span></h2>
+                </div>
+            </div>
+        </section>
+
+        <!-- Charts & Distribution Dashboard -->
+        <section class="analytics-section">
+            <div class="analytics-card chart-card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <svg class="card-title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path>
+                            <path d="M22 12A10 10 0 0 0 12 2v10z"></path>
+                        </svg>
+                        Status Distribution
+                    </h3>
+                    <span class="chart-subtitle">Real-time Watchlist Breakdown</span>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="statusChart" width="280" height="280" aria-label="Status Distribution Pie Chart" role="img"></canvas>
+                </div>
+            </div>
+
+            <div class="analytics-card summary-breakdown-card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <svg class="card-title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                        </svg>
+                        Watchlist Highlights
+                    </h3>
+                </div>
+                <div class="breakdown-list">
+                    <div class="breakdown-item">
+                        <div class="breakdown-label">
+                            <span class="dot-indicator dot-episodes"></span>
+                            <span>Total Episodes Watched</span>
+                        </div>
+                        <span class="breakdown-num" id="stat-total-episodes">0</span>
+                    </div>
+                    <div class="breakdown-item">
+                        <div class="breakdown-label">
+                            <span class="dot-indicator dot-favorites"></span>
+                            <span>Favorite Anime</span>
+                        </div>
+                        <span class="breakdown-num" id="stat-favorites-count">0</span>
+                    </div>
+                    <div class="breakdown-item">
+                        <div class="breakdown-label">
+                            <span class="dot-indicator dot-plantowatch"></span>
+                            <span>Plan to Watch</span>
+                        </div>
+                        <span class="breakdown-num" id="stat-plantowatch-count">0</span>
+                    </div>
+                    <div class="breakdown-item">
+                        <div class="breakdown-label">
+                            <span class="dot-indicator dot-completion"></span>
+                            <span>Completion Rate</span>
+                        </div>
+                        <span class="breakdown-num" id="stat-completion-rate">0%</span>
+                    </div>
+                </div>
+                <div class="quick-genre-tags">
+                    <span class="genre-tag-title">Filter by Popular Genres:</span>
+                    <div class="genre-pills-list" id="popular-genre-pills">
+                        <button type="button" class="genre-pill" data-genre="Action">Action</button>
+                        <button type="button" class="genre-pill" data-genre="Fantasy">Fantasy</button>
+                        <button type="button" class="genre-pill" data-genre="Sci-Fi">Sci-Fi</button>
+                        <button type="button" class="genre-pill" data-genre="Drama">Drama</button>
+                        <button type="button" class="genre-pill" data-genre="Comedy">Comedy</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Controls / Search / Filter Section -->
+        <section class="controls-section" aria-label="Anime Filters and Controls">
+            <div class="search-sort-bar">
+                <!-- Search Input -->
+                <div class="search-input-wrapper">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <input 
+                        type="text" 
+                        id="search-input" 
+                        class="search-input" 
+                        placeholder="Search anime by title or genre..." 
+                        autocomplete="off"
+                        aria-label="Search anime by title or genre"
+                    >
+                    <button type="button" class="clear-search-btn" id="btn-clear-search" aria-label="Clear search query" style="display: none;">
+                        &times;
+                    </button>
+                </div>
+
+                <!-- Sort Control -->
+                <div class="sort-control-wrapper">
+                    <label for="sort-select" class="sort-label">Sort by:</label>
+                    <select id="sort-select" class="sort-select" aria-label="Sort anime list">
+                        <option value="title_asc">Title (A &rarr; Z)</option>
+                        <option value="title_desc">Title (Z &rarr; A)</option>
+                        <option value="rating_desc">Rating (High &rarr; Low)</option>
+                        <option value="rating_asc">Rating (Low &rarr; High)</option>
+                        <option value="episodes_desc">Episodes Watched (Most &rarr; Least)</option>
+                        <option value="created_desc">Recently Added</option>
+                    </select>
+                </div>
+
+                <!-- View Toggle (Grid / List) -->
+                <div class="view-toggle-wrapper">
+                    <button type="button" class="view-toggle-btn active" id="btn-view-grid" title="Grid View" aria-label="Switch to grid view">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
+                        </svg>
+                    </button>
+                    <button type="button" class="view-toggle-btn" id="btn-view-list" title="Compact List View" aria-label="Switch to list view">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="8" y1="6" x2="21" y2="6"></line>
+                            <line x1="8" y1="12" x2="21" y2="12"></line>
+                            <line x1="8" y1="18" x2="21" y2="18"></line>
+                            <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                            <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                            <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Status Tabs -->
+            <div class="filter-tabs-wrapper">
+                <div class="filter-tabs" role="tablist" aria-label="Status filters">
+                    <button type="button" class="filter-tab active" role="tab" aria-selected="true" data-status="All" id="tab-all">
+                        All <span class="tab-badge" id="badge-all">0</span>
+                    </button>
+                    <button type="button" class="filter-tab" role="tab" aria-selected="false" data-status="Watching" id="tab-watching">
+                        Watching <span class="tab-badge" id="badge-watching">0</span>
+                    </button>
+                    <button type="button" class="filter-tab" role="tab" aria-selected="false" data-status="Completed" id="tab-completed">
+                        Completed <span class="tab-badge" id="badge-completed">0</span>
+                    </button>
+                    <button type="button" class="filter-tab" role="tab" aria-selected="false" data-status="Dropped" id="tab-dropped">
+                        Dropped <span class="tab-badge" id="badge-dropped">0</span>
+                    </button>
+                    <button type="button" class="filter-tab" role="tab" aria-selected="false" data-status="Plan to Watch" id="tab-plantowatch">
+                        Plan to Watch <span class="tab-badge" id="badge-plantowatch">0</span>
+                    </button>
+                    <button type="button" class="filter-tab tab-favorites" role="tab" aria-selected="false" data-favorite="true" id="tab-favorites">
+                        ★ Favorites <span class="tab-badge" id="badge-favorites">0</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Anime List / Grid Display -->
+        <section class="anime-display-section">
+            <!-- Loading State -->
+            <div class="loading-state" id="loading-state" style="display: none;">
+                <div class="skeleton-grid">
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                </div>
+            </div>
+
+            <!-- Error State -->
+            <div class="error-state" id="error-state" style="display: none;">
+                <div class="error-content">
+                    <div class="error-icon" aria-hidden="true">⚠️</div>
+                    <h3 class="error-title" id="error-title">Failed to load anime data</h3>
+                    <p class="error-message" id="error-message">Could not connect to the database. Please try again.</p>
+                    <button type="button" class="btn btn-secondary" id="btn-retry">
+                        Retry Loading
+                    </button>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-state" id="empty-state" style="display: none;">
+                <div class="empty-icon-wrapper" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect>
+                        <polyline points="17 2 12 7 7 2"></polyline>
+                    </svg>
+                </div>
+                <h3 class="empty-title">No Anime Found</h3>
+                <p class="empty-subtitle" id="empty-subtitle">Your watchlist is currently empty or no items match your active filters.</p>
+                <button type="button" class="btn btn-primary" id="btn-empty-add">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    <span>Add First Anime</span>
+                </button>
+            </div>
+
+            <!-- Anime Cards Container -->
+            <div class="anime-grid" id="anime-container" aria-live="polite">
+                <!-- Dynamically populated by static/js/anime.js -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Add / Edit Anime Modal -->
+    <div class="modal-backdrop" id="anime-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modal-heading">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modal-heading">Add New Anime</h3>
+                <button type="button" class="modal-close-btn" id="btn-close-modal" aria-label="Close modal">&times;</button>
+            </div>
+
+            <form id="anime-form" class="modal-form" novalidate>
+                <input type="hidden" id="form-anime-id" value="">
+                <input type="hidden" id="form-external-id" name="external_id" value="">
+                <input type="hidden" id="form-poster-url" name="poster_url" value="">
+                <input type="hidden" id="form-mal-rating" name="mal_rating" value="">
+                <input type="hidden" id="form-external-source" name="external_source" value="MyAnimeList">
+
+                <!-- Jikan / MyAnimeList Search & Auto-Fill Section -->
+                <div class="external-search-section">
+                    <div class="external-search-header">
+                        <label for="mal-search-input" class="form-label">
+                            <span class="external-search-title">Auto-fill with MyAnimeList (Jikan API)</span>
+                            <span class="badge-optional">Fast Search</span>
+                        </label>
+                    </div>
+                    <div class="search-action-row">
+                        <div class="mal-search-input-wrapper">
+                            <svg class="search-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                            <input 
+                                type="text" 
+                                id="mal-search-input" 
+                                class="form-input" 
+                                placeholder="Search title on MAL (e.g. Naruto, Bleach, Frieren)..." 
+                                autocomplete="off"
+                            >
+                        </div>
+                        <button type="button" class="btn btn-secondary" id="btn-mal-search" aria-label="Search MyAnimeList">
+                            <span id="btn-mal-search-text">Search</span>
+                        </button>
+                    </div>
+
+                    <!-- Live Loading / Status message -->
+                    <div id="mal-search-status" class="mal-search-status" style="display: none;"></div>
+
+                    <!-- Dropdown of matching results from Jikan -->
+                    <div id="mal-search-results" class="mal-search-results-list" style="display: none;" role="listbox" aria-label="Anime search results"></div>
+
+                    <!-- Selected Metadata Preview Card -->
+                    <div id="mal-selected-preview" class="mal-selected-preview-card" style="display: none;">
+                        <div class="mal-preview-poster-wrap">
+                            <img id="mal-preview-poster" src="" alt="Selected Poster" class="mal-preview-thumb">
+                        </div>
+                        <div class="mal-preview-info">
+                            <div class="mal-preview-title" id="mal-preview-title"></div>
+                            <div class="mal-preview-meta">
+                                <span class="mal-badge-score" id="mal-preview-score"></span>
+                                <span class="mal-badge-eps" id="mal-preview-eps"></span>
+                                <span class="mal-badge-year" id="mal-preview-year"></span>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-clear-selected" id="btn-clear-mal-selection" title="Remove linked external data" aria-label="Clear selected anime">&times;</button>
+                    </div>
+                </div>
+
+                <!-- Title Input -->
+                <div class="form-group">
+                    <label for="form-title" class="form-label required">Anime Title</label>
+                    <input 
+                        type="text" 
+                        id="form-title" 
+                        name="title" 
+                        class="form-input" 
+                        placeholder="e.g. Frieren: Beyond Journey's End" 
+                        required
+                        maxlength="200"
+                        autocomplete="off"
+                    >
+                    <span class="field-error" id="error-form-title"></span>
+                </div>
+
+                <!-- Status & Rating in Two Columns -->
+                <div class="form-row">
+                    <div class="form-group col-half">
+                        <label for="form-status" class="form-label required">Status</label>
+                        <select id="form-status" name="status" class="form-select" required>
+                            <option value="Watching">Watching</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Dropped">Dropped</option>
+                            <option value="Plan to Watch">Plan to Watch</option>
+                        </select>
+                        <span class="field-error" id="error-form-status"></span>
+                    </div>
+
+                    <div class="form-group col-half">
+                        <label for="form-rating" class="form-label">Rating (1 to 10)</label>
+                        <div class="rating-input-wrapper">
+                            <input 
+                                type="number" 
+                                id="form-rating" 
+                                name="rating" 
+                                class="form-input" 
+                                min="1" 
+                                max="10" 
+                                step="1" 
+                                placeholder="1 - 10 (Optional)"
+                            >
+                            <span class="rating-star-hint">★</span>
+                        </div>
+                        <span class="field-error" id="error-form-rating"></span>
+                    </div>
+                </div>
+
+                <!-- Episode Progress (Watched & Total) -->
+                <div class="form-row">
+                    <div class="form-group col-half">
+                        <label for="form-episodes-watched" class="form-label">Episodes Watched</label>
+                        <input 
+                            type="number" 
+                            id="form-episodes-watched" 
+                            name="episodes_watched" 
+                            class="form-input" 
+                            min="0" 
+                            step="1" 
+                            value="0"
+                        >
+                        <span class="field-error" id="error-form-episodes-watched"></span>
+                    </div>
+
+                    <div class="form-group col-half">
+                        <label for="form-total-episodes" class="form-label">Total Episodes</label>
+                        <input 
+                            type="number" 
+                            id="form-total-episodes" 
+                            name="total_episodes" 
+                            class="form-input" 
+                            min="0" 
+                            step="1" 
+                            placeholder="0 if ongoing / unknown" 
+                            value="0"
+                        >
+                        <span class="field-error" id="error-form-total-episodes"></span>
+                    </div>
+                </div>
+
+                <!-- Genres Input & Suggestion Chips -->
+                <div class="form-group">
+                    <label for="form-genres" class="form-label">Genres (Comma separated)</label>
+                    <input 
+                        type="text" 
+                        id="form-genres" 
+                        name="genres" 
+                        class="form-input" 
+                        placeholder="e.g. Action, Fantasy, Shonen"
+                        autocomplete="off"
+                    >
+                    <div class="tag-chips-picker" id="modal-tag-chips">
+                        <span class="chip-label">Quick add:</span>
+                        <button type="button" class="form-tag-chip" data-tag="Action">+ Action</button>
+                        <button type="button" class="form-tag-chip" data-tag="Adventure">+ Adventure</button>
+                        <button type="button" class="form-tag-chip" data-tag="Fantasy">+ Fantasy</button>
+                        <button type="button" class="form-tag-chip" data-tag="Sci-Fi">+ Sci-Fi</button>
+                        <button type="button" class="form-tag-chip" data-tag="Drama">+ Drama</button>
+                        <button type="button" class="form-tag-chip" data-tag="Comedy">+ Comedy</button>
+                        <button type="button" class="form-tag-chip" data-tag="Romance">+ Romance</button>
+                        <button type="button" class="form-tag-chip" data-tag="Supernatural">+ Supernatural</button>
+                    </div>
+                    <span class="field-error" id="error-form-genres"></span>
+                </div>
+
+                <!-- Favorite Toggle Checkbox -->
+                <div class="form-group form-checkbox-group">
+                    <label class="custom-checkbox-label" for="form-is-favorite">
+                        <input type="checkbox" id="form-is-favorite" name="is_favorite" class="custom-checkbox">
+                        <span class="checkbox-visual"></span>
+                        <span class="checkbox-text">
+                            <span class="star-icon">★</span> Mark as Favorite Anime
+                        </span>
+                    </label>
+                </div>
+
+                <!-- Notes Textarea -->
+                <div class="form-group">
+                    <label for="form-notes" class="form-label">Personal Notes / Review</label>
+                    <textarea 
+                        id="form-notes" 
+                        name="notes" 
+                        class="form-textarea" 
+                        rows="2" 
+                        placeholder="Thoughts on story, favorite moments, animation quality..."
+                        maxlength="1000"
+                    ></textarea>
+                </div>
+
+                <!-- Form Error Banner -->
+                <div class="form-alert-error" id="form-global-error" style="display: none;"></div>
+
+                <!-- Form Action Buttons -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="btn-cancel-modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="btn-submit-anime">
+                        <span id="btn-submit-text">Save Anime</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal-backdrop" id="delete-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="delete-heading">
+        <div class="modal-container modal-danger-dialog">
+            <div class="modal-header">
+                <h3 class="modal-title" id="delete-heading">Confirm Deletion</h3>
+                <button type="button" class="modal-close-btn" id="btn-close-delete-modal" aria-label="Close delete modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="danger-warning-icon" aria-hidden="true">🗑️</div>
+                <p class="delete-warning-text">
+                    Are you sure you want to remove <strong id="delete-anime-title" class="danger-highlight">this anime</strong> from your watchlist?
+                </p>
+                <p class="delete-sub-text">This action cannot be undone.</p>
+                <input type="hidden" id="delete-anime-id" value="">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="btn-cancel-delete">Cancel</button>
+                <button type="button" class="btn btn-danger" id="btn-confirm-delete">
+                    <span>Delete Anime</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div class="toast-container" id="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- Scripts: Chart.js, Anime API, Filters, Charts, and Main App -->
+    <script src="{{ url_for('static', filename='js/chart.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/anime.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/filters.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
